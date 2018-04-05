@@ -59,11 +59,27 @@ func main() {
 	}
 
 	root.AddCommand(completions)
-	root.ExecuteC()
+	root.Execute()
 }
 
 func loadCommandsInto(root *cobra.Command) error {
-	baseDir := filepath.Join(os.Getenv("HOME"), ".sd")
+	home := filepath.Join(os.Getenv("HOME"), ".sd")
+
+	wd, _ := os.Getwd()
+	current := filepath.Join(wd, "scripts")
+
+	for _, path := range []string{home, current} {
+		err := loadCommandsFromPath(path, root)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func loadCommandsFromPath(path string, root *cobra.Command) error {
+	baseDir := path
 	parent := root
 
 	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {

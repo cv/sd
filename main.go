@@ -13,9 +13,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	Version string
+	Build   string
+)
+
 func main() {
+	if Version == "" || Build == "" {
+		fmt.Println("BAD BUILD")
+		os.Exit(-1)
+	}
+
 	root := &cobra.Command{
-		Use: "sd",
+		Use:     "sd",
+		Version: Version,
 	}
 
 	completions := &cobra.Command{

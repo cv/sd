@@ -1,0 +1,12 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang
+
+    working_directory: /go/src/github.com/cv/sd
+
+    steps:
+      - checkout
+      - run: dep ensure
+      - run: make clean build

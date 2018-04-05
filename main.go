@@ -60,7 +60,7 @@ func loadCommandsInto(root *cobra.Command) error {
 		case err != nil, path == baseDir:
 			return nil
 
-		case []rune(filepath.Base(path))[0] == []rune(".")[0]:
+		case strings.HasPrefix(filepath.Base(path), "."):
 			return filepath.SkipDir
 
 		case filepath.Base(path) == "README":

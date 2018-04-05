@@ -28,36 +28,12 @@ func main() {
 		Version: fmt.Sprintf("%s (%s)", Version, Commit),
 	}
 
-	completions := &cobra.Command{
-		Use:   "completions",
-		Short: "Generate completion scripts",
-	}
-	completions.Run = func(cmd *cobra.Command, args []string) {
-		completions.Usage()
-	}
-
-	completions.AddCommand(&cobra.Command{
-		Use:   "bash",
-		Short: "Generate completions for bash",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return root.GenBashCompletion(os.Stdout)
-		},
-	})
-
-	completions.AddCommand(&cobra.Command{
-		Use:   "zsh",
-		Short: "Generate completions for zsh",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return root.GenZshCompletion(os.Stdout)
-		},
-	})
-
 	err := loadCommandsInto(root)
 	if err != nil {
 		panic(err)
 	}
 
-	root.AddCommand(completions)
+	root.AddCommand(completions(root))
 	root.Execute()
 }
 
@@ -68,47 +44,71 @@ func loadCommandsInto(root *cobra.Command) error {
 	current := filepath.Join(wd, "scripts")
 
 	for _, path := range []string{home, current} {
-		err := loadCommandsFromPath(path, root)
+		cmds, err := visitDir(path)
 		if err != nil {
 			return err
+		}
+
+		for _, c := range cmds {
+			root.AddCommand(c)
 		}
 	}
 
 	return nil
 }
 
-func loadCommandsFromPath(path string, root *cobra.Command) error {
-	baseDir := path
-	parent := root
+func visitDir(path string) ([]*cobra.Command, error) {
+	var cmds []*cobra.Command
 
-	err := filepath.Walk(baseDir, func(path string, info os.FileInfo, err error) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return cmds, nil
+	}
+
+	items, err := ioutil.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range items {
 		switch {
+		case strings.HasPrefix(item.Name(), "."):
+			continue
 
-		case err != nil, path == baseDir:
-			return nil
-
-		case strings.HasPrefix(filepath.Base(path), "."):
-			return filepath.SkipDir
-
-		case filepath.Base(path) == "README":
-			cmd, err := commandFromReadme(path)
-			if err != nil {
-				return err
+		case item.IsDir():
+			cmd := &cobra.Command{
+				Use: item.Name(),
 			}
-			parent.AddCommand(cmd)
-			parent = cmd
 
-		case info.Mode()&0100 != 0 && !info.IsDir():
-			cmd, err := commandFromScript(path)
-			if err != nil {
-				return err
+			readme, err := ioutil.ReadFile(filepath.Join(path, item.Name(), "README"))
+			if err == nil {
+				cmd.Short = strings.Split(string(readme), "\n")[0]
+				cmd.Long = string(readme)
 			}
-			parent.AddCommand(cmd)
+
+			subcmds, err := visitDir(filepath.Join(path, item.Name()))
+			if err != nil {
+				return nil, err
+			}
+			for _, i := range subcmds {
+				cmd.AddCommand(i)
+			}
+
+			if cmd.HasSubCommands() {
+				cmd.Run = func(cmd *cobra.Command, args []string) {
+					cmd.Usage()
+				}
+			}
+			cmds = append(cmds, cmd)
+
+		case item.Mode()&0100 != 0:
+			cmd, err := commandFromScript(filepath.Join(path, item.Name()))
+			if err != nil {
+				return nil, err
+			}
+			cmds = append(cmds, cmd)
 		}
-		return nil
-	})
-
-	return err
+	}
+	return cmds, nil
 }
 
 /*
@@ -172,7 +172,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		return nil, err
 	}
 
-	cmd := cobra.Command{
+	cmd := &cobra.Command{
 		Use:     filepath.Base(path),
 		Short:   shortDesc,
 		Example: example,
@@ -181,32 +181,38 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		},
 	}
 
-	return &cmd, nil
-}
-
-/*
-
-First line of README is the short description, and everything else is the long description.
-
-*/
-func commandFromReadme(path string) (*cobra.Command, error) {
-	file, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	cmd := &cobra.Command{
-		Use:   filepath.Base(filepath.Dir(path)),
-		Short: strings.Split(string(file), "\n")[0],
-		Long:  string(file),
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Usage()
-		},
-	}
-
 	return cmd, nil
 }
 
 func sh(cmd string, args []string) error {
 	return syscall.Exec(cmd, append([]string{cmd}, args...), os.Environ())
+}
+
+func completions(root *cobra.Command) *cobra.Command {
+	c := &cobra.Command{
+		Use:   "completions",
+		Short: "Generate completion scripts",
+	}
+
+	c.Run = func(cmd *cobra.Command, args []string) {
+		c.Usage()
+	}
+
+	c.AddCommand(&cobra.Command{
+		Use:   "bash",
+		Short: "Generate completions for bash",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return root.GenBashCompletion(os.Stdout)
+		},
+	})
+
+	c.AddCommand(&cobra.Command{
+		Use:   "zsh",
+		Short: "Generate completions for zsh",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return root.GenZshCompletion(os.Stdout)
+		},
+	})
+
+	return c
 }

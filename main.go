@@ -132,7 +132,7 @@ func exampleFrom(path string) (string, error) {
 	for scanner.Scan() {
 		match := r.FindStringSubmatch(scanner.Text())
 		if len(match) == 2 {
-			return "  " + match[1], nil
+			return "  sd " + match[1], nil
 		}
 	}
 	return "", nil
@@ -150,8 +150,8 @@ func commandFromScript(path string) (*cobra.Command, error) {
 	}
 
 	cmd := cobra.Command{
-		Use:   filepath.Base(path),
-		Short: shortDesc,
+		Use:     filepath.Base(path),
+		Short:   shortDesc,
 		Example: example,
 		Run: func(cmd *cobra.Command, args []string) {
 			sh(path, args)
@@ -185,7 +185,5 @@ func commandFromReadme(path string) (*cobra.Command, error) {
 }
 
 func sh(cmd string, args []string) error {
-	args = append([]string{"sh", "-c", cmd}, args...)
-	fmt.Printf("EXEC: %s\n", args)
-	return syscall.Exec("/bin/sh", args, os.Environ())
+	return syscall.Exec(cmd, append([]string{cmd}, args...), os.Environ())
 }

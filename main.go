@@ -82,11 +82,7 @@ func loadCommandsInto(root *cobra.Command) error {
 		return nil
 	})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 /*
@@ -95,7 +91,7 @@ Looks for a line like this:
 
 # name-of-the-file: short description.
 
- */
+*/
 func shortDescriptionFrom(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -120,7 +116,7 @@ Looks for a line like this:
 
 # example: foo bar 1 2 3
 
- */
+*/
 func exampleFrom(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -166,7 +162,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 
 First line of README is the short description, and everything else is the long description.
 
- */
+*/
 func commandFromReadme(path string) (*cobra.Command, error) {
 	file, err := ioutil.ReadFile(path)
 	if err != nil {

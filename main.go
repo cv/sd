@@ -20,9 +20,9 @@ func main() {
 	completions := &cobra.Command{
 		Use:   "completions",
 		Short: "Generate completion scripts",
-		Run: func(cmd *cobra.Command, args []string) {
-			root.Usage()
-		},
+	}
+	completions.Run = func(cmd *cobra.Command, args []string) {
+		completions.Usage()
 	}
 
 	completions.AddCommand(&cobra.Command{

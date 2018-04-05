@@ -13,20 +13,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// These variables are set by the build process (see Makefile)
 var (
+	// Version of the application (SemVer)
 	Version string
-	Build   string
+
+	// Commit hash (short SHA1 of HEAD)
+	Commit string
 )
 
 func main() {
-	if Version == "" || Build == "" {
-		fmt.Println("BAD BUILD")
-		os.Exit(-1)
-	}
-
 	root := &cobra.Command{
 		Use:     "sd",
-		Version: Version,
+		Version: fmt.Sprintf("%s (%s)", Version, Commit),
 	}
 
 	completions := &cobra.Command{

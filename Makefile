@@ -1,35 +1,16 @@
-# Check for required command tools to build or stop immediately
-EXECUTABLES = git go find pwd
-K := $(foreach exec,$(EXECUTABLES),\
-        $(if $(shell which $(exec)),some string,$(error "No $(exec) in PATH)))
+BINARY = sd
+VERSION = 0.0.1
+BUILD = $(shell git rev-parse --short HEAD)
 
-ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+PLATFORMS := windows linux darwin
+os = $(word 1, $@)
 
-BINARY=sd
-VERSION=0.0.1
-BUILD=`git rev-parse HEAD`
-PLATFORMS=darwin linux windows
-ARCHITECTURES=386 amd64
+.PHONY: build
+build: windows linux darwin
 
-# Setup linker flags option for build that interoperate with variable names in src code
-LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
+.PHONY: $(PLATFORMS)
+$(PLATFORMS):
+	@GOOS=$(os) GOARCH=amd64 go build -ldflags='-X main.Version=$(VERSION) -X main.Build=$(BUILD)' -v -o build/$(BINARY)-$(VERSION)-$(os)-amd64
 
-default: build
-
-all: clean build_all install
-
-build:
-	go build ${LDFLAGS} -o ${BINARY}
-
-build_all:
-	$(foreach GOOS, $(PLATFORMS),\
-	$(foreach GOARCH, $(ARCHITECTURES), $(shell export GOOS=$(GOOS); export GOARCH=$(GOARCH); go build -v -o build/$(BINARY)-$(GOOS)-$(GOARCH)-$(VERSION))))
-
-install:
-	@go install ${LDFLAGS}
-
-# Remove only what we've created
 clean:
-	@find ${ROOT_DIR} -name '${BINARY}[-?][a-zA-Z0-9]*[-?][a-zA-Z0-9]*' -delete
-
-.PHONY: check clean install build_all all
+	@rm -rf build/sd-*

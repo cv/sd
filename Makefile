@@ -1,5 +1,5 @@
 BINARY = sd
-VERSION = 0.0.2
+VERSION = 0.0.3
 COMMIT = $(shell git rev-parse --short HEAD)
 
 PLATFORMS := windows linux darwin

@@ -92,7 +92,7 @@ More will be added in the future, so you'll be able to specify and document flag
 
 If you have a Go development environment installed, this should be a piece of cake:
 
-```
+```shell
 $ go get -u github.com/cv/sd
 ```
 
@@ -102,8 +102,8 @@ APT, Homebrew and other packages coming up soon.
 
 To enable shell completions, making `sd` much more pleasant to use, run:
 
-```bash
-source <(sd completions bash)
+```shell
+$ source <(sd completions bash)
 ```
 
 Or add it to `/etc/bash-completion.d`, as documented [in this guide](https://debian-administration.org/article/316/An_introduction_to_bash_completion_part_1).

@@ -1,15 +1,16 @@
 package main
 
 import (
-	"github.com/spf13/cobra"
+	"bufio"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"io/ioutil"
-	"strings"
-	"fmt"
-	"bufio"
 	"regexp"
+	"strings"
 	"syscall"
+
+	"github.com/spf13/cobra"
 )
 
 func main() {

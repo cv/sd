@@ -17,6 +17,7 @@ jobs:
       - deploy:
           name: goreleaser
           command: |
+            echo $DOCKER_PASSWORD | docker login -u cvillela --password-stdin
             curl -sL https://git.io/goreleaser | bash
 
 workflows:

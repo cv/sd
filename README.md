@@ -49,7 +49,7 @@ Usage:
   sd foo [command]
 
 Available Commands:
-  bar         Bars the frobs.
+  bar         Bars the foos.
 
 Flags:
   -h, --help   help for foo
@@ -90,13 +90,39 @@ More will be added in the future, so you'll be able to specify and document flag
 
 ## Installing
 
-If you have a Go development environment installed, this should be a piece of cake:
+### Homebrew
+
+The easiest way to install and keep `sd` up-to-date for MacOS users is through [Homebrew](https://brew.sh). First, add the `cv/taps` tap to your Homebrew install:
+
+```
+$ brew tap cv/taps git@github.com:cv/taps.git
+==> Tapping cv/taps
+Cloning into '/usr/local/Homebrew/Library/Taps/cv/homebrew-taps'...
+remote: Counting objects: 5, done.
+remote: Compressing objects: 100% (5/5), done.
+remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
+Receiving objects: 100% (5/5), done.
+Tapped 1 formula (27 files, 23KB)
+```
+
+Then install `sd` with `brew install sd`:
+
+```
+$ brew install sd
+==> Installing sd from cv/taps
+==> Downloading https://github.com/cv/sd/releases/download/v0.1.1/sd_0.1.1_Darwin_x86_64.tar.gz
+==> Downloading from https://github-production-release-asset-2e65be.s3.amazonaws.com/128149837/9149f9cc-39b3-11e8-98d8-b5bf16da23b7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2
+######################################################################## 100.0%
+🍺  /usr/local/Cellar/sd/0.1.1: 5 files, 3MB, built in 7 seconds
+```
+
+If you have a Go development environment installed, `go get` should work as expected:
 
 ```shell
 $ go get -u github.com/cv/sd
 ```
 
-Alternatively, grab one of the packages from the [Releases](https://github.com/cv/sd/releases) tab.
+Alternatively, you can grab one of the packages from the [Releases](https://github.com/cv/sd/releases) tab.
 
 ## Multiple sources
 

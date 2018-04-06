@@ -59,13 +59,16 @@ func loadCommandsInto(root *cobra.Command) error {
 	if err != nil {
 		return err
 	}
-
 	logrus.Debug("Current working dir is set to: ", wd)
 
 	current := filepath.Join(wd, "scripts")
 	logrus.Debug("Looking for ./scripts in: ", current)
 
-	for _, path := range []string{home, current} {
+	sdPath := os.Getenv("SD_PATH")
+	paths := filepath.SplitList(sdPath)
+	logrus.Debug("SD_PATH is set to:", sdPath, ", parsed as: ", paths)
+
+	for _, path := range append([]string{home, current}, paths...) {
 		cmds, err := visitDir(path)
 		if err != nil {
 			return err
@@ -223,7 +226,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 }
 
 func sh(cmd string, args []string) error {
-	logrus.Debug("Exec", cmd, args)
+	logrus.Debug("Exec: ", cmd, " with args: ", args)
 	return syscall.Exec(cmd, append([]string{cmd}, args...), os.Environ())
 }
 

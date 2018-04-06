@@ -65,7 +65,7 @@ func loadCommandsInto(root *cobra.Command) error {
 	paths := filepath.SplitList(sdPath)
 	logrus.Debug("SD_PATH is set to:", sdPath, ", parsed as: ", paths)
 
-	for _, path := range append([]string{home, current}, paths...) {
+	for _, path := range deduplicate(append([]string{home, current}, paths...)) {
 		cmds, err := visitDir(path)
 		if err != nil {
 			return err
@@ -255,4 +255,22 @@ func completions(root *cobra.Command) *cobra.Command {
 
 	logrus.Debug("Completions (bash/zsh) commands added")
 	return c
+}
+
+/*
+ * deduplicate a slice of strings, keeping the order of the elements
+ */
+func deduplicate(input []string) []string {
+	var output []string
+	unique := map[string]interface{}{}
+	for _, i := range input {
+		unique[i] = new(interface{})
+	}
+	for _, i := range input {
+		if _, ok := unique[i]; ok {
+			output = append(output, i)
+			delete(unique, i)
+		}
+	}
+	return output
 }

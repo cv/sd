@@ -16,16 +16,13 @@ import (
 // These variables are set by the build process (see Makefile)
 var (
 	// Version of the application (SemVer)
-	Version string
-
-	// Commit hash (short SHA1 of HEAD)
-	Commit string
+	version string
 )
 
 func main() {
 	root := &cobra.Command{
 		Use:     "sd",
-		Version: fmt.Sprintf("%s (%s)", Version, Commit),
+		Version: version,
 	}
 
 	err := loadCommandsInto(root)

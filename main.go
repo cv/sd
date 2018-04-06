@@ -28,21 +28,14 @@ func main() {
 	root.AddCommand(completions(root))
 	root.PersistentFlags().BoolP("debug", "d", false, "Turn debugging on/off")
 
-	err := root.ParseFlags(os.Args)
-	if err != nil {
-		panic(err)
+	// Flags haven't been parsed yet, we need to do it ourselves
+	for _, arg := range os.Args {
+		if arg == "-d" || arg == "--debug" {
+			logrus.SetLevel(logrus.DebugLevel)
+		}
 	}
 
-	debug, err := root.PersistentFlags().GetBool("debug")
-	if err != nil {
-		panic(err)
-	}
-
-	if debug {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-
-	err = loadCommandsInto(root)
+	err := loadCommandsInto(root)
 	if err != nil {
 		panic(err)
 	}

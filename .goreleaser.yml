@@ -1,16 +1,64 @@
 builds:
 - env:
   - CGO_ENABLED=0
+
 archive:
+  wrap_in_directory: true
+
+  format_overrides:
+  - goos: windows
+    format: zip
+
   replacements:
     darwin: Darwin
     linux: Linux
     windows: Windows
     386: i386
     amd64: x86_64
+
+  files:
+    - LICENSE
+    - README.md
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ .Tag }}-snapshot"
+
 changelog:
   sort: asc
+
+git:
+  short_hash: true
+
+nfpm:
+  maintainer: Carlos Villela <cv@lixo.org>
+  homepage: https://github.com/cv/sd
+  description: A tool to keep utility scripts neatly organized.
+  license: MIT
+  dependencies:
+    - bash
+  formats:
+    - deb
+    - rpm
+
+brew:
+  github:
+    owner: cv
+    name: taps
+
+  commit_author:
+    name: Carlos Villela
+    email: cv@lixo.org
+
+  homepage: https://github.com/cv/sd
+  description: A tool to keep utility scripts neatly organized.
+
+dockers:
+  - image: cv/sd
+    tag_templates:
+      - "{{ .Tag }}"
+      - "v{{ .Major }}"
+      - "v{{ .Major }}.{{ .Minor }}"
+      - latest

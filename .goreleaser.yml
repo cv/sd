@@ -56,7 +56,7 @@ brew:
   description: A tool to keep utility scripts neatly organized.
 
 dockers:
-  - image: cv/sd
+  - image: cvillela/sd
     tag_templates:
       - "{{ .Tag }}"
       - "v{{ .Major }}"

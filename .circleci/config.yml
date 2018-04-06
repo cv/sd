@@ -9,9 +9,13 @@ jobs:
       - deploy:
           name: goreleaser
           command: |
-            if [[ -n ${CIRCLE_TAG} ]]; then
-              curl -sL https://git.io/goreleaser | bash
-            fi
-deployment:
-  trigger_tag:
-    tag: /.*/
+            curl -sL https://git.io/goreleaser | bash
+
+workflows:
+  version: 2
+  tagged-builds:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/

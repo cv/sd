@@ -10,6 +10,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -20,25 +21,49 @@ var (
 )
 
 func main() {
+	var err error
+
 	root := &cobra.Command{
 		Use:     "sd",
 		Version: version,
 	}
+	root.AddCommand(completions(root))
+	root.PersistentFlags().BoolP("debug", "d", false, "Turn debugging on/off")
 
-	err := loadCommandsInto(root)
+	root.ParseFlags(os.Args)
+
+	debug, err := root.PersistentFlags().GetBool("debug")
 	if err != nil {
 		panic(err)
 	}
 
-	root.AddCommand(completions(root))
+	if debug {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	err = loadCommandsInto(root)
+	if err != nil {
+		panic(err)
+	}
+
 	root.Execute()
 }
 
 func loadCommandsInto(root *cobra.Command) error {
-	home := filepath.Join(os.Getenv("HOME"), ".sd")
+	logrus.Debug("Loading commands started")
 
-	wd, _ := os.Getwd()
+	home := filepath.Join(os.Getenv("HOME"), ".sd")
+	logrus.Debug("HOME is set to: ", home)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	logrus.Debug("Current working dir is set to: ", wd)
+
 	current := filepath.Join(wd, "scripts")
+	logrus.Debug("Looking for ./scripts in: ", current)
 
 	for _, path := range []string{home, current} {
 		cmds, err := visitDir(path)
@@ -51,13 +76,16 @@ func loadCommandsInto(root *cobra.Command) error {
 		}
 	}
 
+	logrus.Debug("Loading commands done")
 	return nil
 }
 
 func visitDir(path string) ([]*cobra.Command, error) {
+	logrus.Debug("Visiting path: ", path)
 	var cmds []*cobra.Command
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
+		logrus.Debug("Path does not exist: ", path)
 		return cmds, nil
 	}
 
@@ -69,15 +97,19 @@ func visitDir(path string) ([]*cobra.Command, error) {
 	for _, item := range items {
 		switch {
 		case strings.HasPrefix(item.Name(), "."):
+			logrus.Debug("Ignoring hidden path: ", filepath.Join(path, item.Name()))
 			continue
 
 		case item.IsDir():
+			logrus.Debug("Found directory: ", filepath.Join(path, item.Name()))
 			cmd := &cobra.Command{
 				Use: item.Name(),
 			}
 
-			readme, err := ioutil.ReadFile(filepath.Join(path, item.Name(), "README"))
+			readmePath := filepath.Join(path, item.Name(), "README")
+			readme, err := ioutil.ReadFile(readmePath)
 			if err == nil {
+				logrus.Debug("Found README at: ", readmePath)
 				cmd.Short = strings.Split(string(readme), "\n")[0]
 				cmd.Long = string(readme)
 				cmd.Args = cobra.NoArgs
@@ -92,6 +124,7 @@ func visitDir(path string) ([]*cobra.Command, error) {
 			}
 
 			if cmd.HasSubCommands() {
+				logrus.Debug("Directory has scripts (subcommands) inside it: ", filepath.Join(path, item.Name()))
 				cmd.Run = func(cmd *cobra.Command, args []string) {
 					cmd.Usage()
 				}
@@ -99,10 +132,13 @@ func visitDir(path string) ([]*cobra.Command, error) {
 			cmds = append(cmds, cmd)
 
 		case item.Mode()&0100 != 0:
+			logrus.Debug("Script found: ", filepath.Join(path, item.Name()))
+
 			cmd, err := commandFromScript(filepath.Join(path, item.Name()))
 			if err != nil {
 				return nil, err
 			}
+
 			cmds = append(cmds, cmd)
 		}
 	}
@@ -128,6 +164,7 @@ func shortDescriptionFrom(path string) (string, error) {
 	for scanner.Scan() {
 		match := r.FindStringSubmatch(scanner.Text())
 		if len(match) == 2 {
+			logrus.Debug("Found short description line: ", filepath.Join(path), ", set to: ", match[1])
 			return match[1], nil
 		}
 	}
@@ -153,6 +190,7 @@ func exampleFrom(path string) (string, error) {
 	for scanner.Scan() {
 		match := r.FindStringSubmatch(scanner.Text())
 		if len(match) == 2 {
+			logrus.Debug("Found example line: ", filepath.Join(path), ", set to: ", match[1])
 			return "  sd " + match[1], nil
 		}
 	}
@@ -179,10 +217,13 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		},
 	}
 
+	logrus.Debug("Created command: ", filepath.Base(path))
+
 	return cmd, nil
 }
 
 func sh(cmd string, args []string) error {
+	logrus.Debug("Exec", cmd, args)
 	return syscall.Exec(cmd, append([]string{cmd}, args...), os.Environ())
 }
 
@@ -212,5 +253,6 @@ func completions(root *cobra.Command) *cobra.Command {
 		},
 	})
 
+	logrus.Debug("Completions (bash/zsh) commands added")
 	return c
 }

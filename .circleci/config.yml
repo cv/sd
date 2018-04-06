@@ -12,6 +12,8 @@ jobs:
             sudo apt-get install -y rpm
             curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
             dep ensure
+      - setup_remote_docker:
+          docker_layer_caching: true
       - deploy:
           name: goreleaser
           command: |

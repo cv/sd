@@ -80,6 +80,7 @@ func visitDir(path string) ([]*cobra.Command, error) {
 			if err == nil {
 				cmd.Short = strings.Split(string(readme), "\n")[0]
 				cmd.Long = string(readme)
+				cmd.Args = cobra.NoArgs
 			}
 
 			subcmds, err := visitDir(filepath.Join(path, item.Name()))

@@ -96,7 +96,15 @@ If you have a Go development environment installed, this should be a piece of ca
 $ go get -u github.com/cv/sd
 ```
 
-APT, Homebrew and other packages coming up soon.
+Alternatively, grab one of the packages from the [Releases](https://github.com/cv/sd/releases) tab.
+
+## Multiple sources
+
+`sd` loads scripts and dirs in the following order:
+
+- Your `$HOME/.sd` directory
+- Script directories listed in `SD_PATH`
+- The `scripts` directory under the current location
 
 ## Completions
 
@@ -110,4 +118,9 @@ Or add it to `/etc/bash-completion.d`, as documented [in this guide](https://deb
 
 ## Contributing
 
-Yes, please.
+Yes, please! Check out the [issues](https://github.com/cv/sd/issues) and [pull requests](https://github.com/cv/sd/pulls). Any feedback is greatly appreciated!
+
+## Thanks
+
+- [Steve Francia](https://github.com/spf13) et al for [Cobra](https://github.com/spf13/cobra)
+- [Fabio Rehm](https://github.com/fgrehm) for lots of feedback and ideas

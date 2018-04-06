@@ -21,8 +21,6 @@ var (
 )
 
 func main() {
-	var err error
-
 	root := &cobra.Command{
 		Use:     "sd",
 		Version: version,
@@ -30,7 +28,10 @@ func main() {
 	root.AddCommand(completions(root))
 	root.PersistentFlags().BoolP("debug", "d", false, "Turn debugging on/off")
 
-	root.ParseFlags(os.Args)
+	err := root.ParseFlags(os.Args)
+	if err != nil {
+		panic(err)
+	}
 
 	debug, err := root.PersistentFlags().GetBool("debug")
 	if err != nil {
@@ -46,7 +47,10 @@ func main() {
 		panic(err)
 	}
 
-	root.Execute()
+	err = root.Execute()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func loadCommandsInto(root *cobra.Command) error {
@@ -128,8 +132,8 @@ func visitDir(path string) ([]*cobra.Command, error) {
 
 			if cmd.HasSubCommands() {
 				logrus.Debug("Directory has scripts (subcommands) inside it: ", filepath.Join(path, item.Name()))
-				cmd.Run = func(cmd *cobra.Command, args []string) {
-					cmd.Usage()
+				cmd.RunE = func(cmd *cobra.Command, args []string) error {
+					return cmd.Usage()
 				}
 			}
 			cmds = append(cmds, cmd)
@@ -215,8 +219,8 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		Use:     filepath.Base(path),
 		Short:   shortDesc,
 		Example: example,
-		Run: func(cmd *cobra.Command, args []string) {
-			sh(path, args)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return sh(path, args)
 		},
 	}
 
@@ -236,8 +240,8 @@ func completions(root *cobra.Command) *cobra.Command {
 		Short: "Generate completion scripts",
 	}
 
-	c.Run = func(cmd *cobra.Command, args []string) {
-		c.Usage()
+	c.RunE = func(cmd *cobra.Command, args []string) error {
+		return c.Usage()
 	}
 
 	c.AddCommand(&cobra.Command{

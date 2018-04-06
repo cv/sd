@@ -1,4 +1,16 @@
 version: 2
+
+workflows:
+  version: 2
+  release-tag:
+    jobs:
+      - release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+
 jobs:
   release:
     docker:
@@ -19,14 +31,3 @@ jobs:
           command: |
             echo $DOCKER_PASSWORD | docker login -u cvillela --password-stdin
             curl -sL https://git.io/goreleaser | bash
-
-workflows:
-  version: 2
-  release:
-    jobs:
-      - build:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /^v.*/

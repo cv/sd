@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  release:
     docker:
       - image: circleci/golang
     working_directory: /go/src/github.com/cv/sd
@@ -22,9 +22,11 @@ jobs:
 
 workflows:
   version: 2
-  tagged-builds:
+  release:
     jobs:
       - build:
           filters:
+            branches:
+              ignore: /.*/
             tags:
               only: /^v.*/

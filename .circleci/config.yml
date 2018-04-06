@@ -6,8 +6,12 @@ jobs:
     working_directory: /go/src/github.com/cv/sd
     steps:
       - checkout
-      - run: curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-      - run: dep ensure
+      - run:
+          name: Installing dependencies
+          command: |
+            apt-get install -y rpm
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
       - deploy:
           name: goreleaser
           command: |

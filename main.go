@@ -258,10 +258,21 @@ func completions(root *cobra.Command) *cobra.Command {
 		return c.Usage()
 	}
 
+	c.PersistentFlags().StringP("alias", "a", "sd", "Generate completions for an alias")
+	aliasedRoot := func() (*cobra.Command, error) {
+		alias, err := c.Flags().GetString("alias")
+		root.Use = alias
+		return root, err
+	}
+
 	c.AddCommand(&cobra.Command{
 		Use:   "bash",
 		Short: "Generate completions for bash",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			root, err := aliasedRoot()
+			if err != nil {
+				return err
+			}
 			return root.GenBashCompletion(os.Stdout)
 		},
 	})
@@ -270,6 +281,10 @@ func completions(root *cobra.Command) *cobra.Command {
 		Use:   "zsh",
 		Short: "Generate completions for zsh",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			root, err := aliasedRoot()
+			if err != nil {
+				return err
+			}
 			return root.GenZshCompletion(os.Stdout)
 		},
 	})

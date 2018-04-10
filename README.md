@@ -25,14 +25,7 @@ Usage:
   sd [command]
 
 Available Commands:
-  completions Generate completion scripts
   foo         Commands related to foo
-  help        Help about any command
-
-Flags:
-  -h, --help   help for sd
-
-Use "sd [command] --help" for more information about a command.
 ```
 
 The rest of the `README` file gets displayed when the user asks for further help:
@@ -45,16 +38,7 @@ This is the longer text description of all the subcommands, switches
 and examples of foo. It is displayed when `sd foo --help` is called.
 
 Usage:
-  sd foo [flags]
-  sd foo [command]
-
-Available Commands:
-  bar         Bars the foos.
-
-Flags:
-  -h, --help   help for foo
-
-Use "sd foo [command] --help" for more information about a command.
+...
 ```
 
 The `bar` script *must* be marked executable (`chmod +x`). Any files not marked executable will be ignored. The help text for it looks like this:
@@ -68,9 +52,6 @@ Usage:
 
 Examples:
   sd foo bar 123
-
-Flags:
-  -h, --help   help for bar
 ```
 
 In order to document the script, `sd` pays attention to a few special comments:
@@ -87,15 +68,6 @@ echo "sd foo bar has been called"
 ```
 
 More will be added in the future, so you'll be able to specify and document flags, environment variables, and so on.
-
-## Running
-
-`sd` pays attention to the following flags:
-
-* `-d`, `--debug`: Turn on debugging. Especially useful if you are trying to figure out why any given script isn't loading, or isn't loading quite like you'd want it.
-* `-e`, `--edit`: Instead of executing a script, `sd` will open it in your favorite editor, as defined by the `EDITOR` environment variable.
-* `-h`, `--help`: Shows help text for anything.
-* `--version`: Displays the version information and exits.
 
 ## Installing
 
@@ -133,15 +105,18 @@ $ go get -u github.com/cv/sd
 
 Alternatively, you can grab one of the packages from the [Releases](https://github.com/cv/sd/releases) tab.
 
-## Multiple sources
+## Running
 
-`sd` loads scripts and dirs in the following order:
+### Flags
 
-- Your `$HOME/.sd` directory
-- Script directories listed in `SD_PATH`
-- The `scripts` directory under the current location
+`sd` pays attention to the following flags in any command:
 
-## Completions
+* `-d` or `--debug`: Turn on debugging. Especially useful if you are trying to figure out why any given script isn't loading, or isn't loading quite like you'd want it.
+* `-e` or `--edit`: Instead of executing a script, `sd` will open it in your favorite editor, as defined by the `VISUAL` or `EDITOR` environment variables.
+* `-h` or `--help`: Shows help text for anything.
+* `--version`: Displays the version information and exits.
+
+### Completions
 
 To enable shell completions, making `sd` much more pleasant to use, run:
 
@@ -150,6 +125,14 @@ $ source <(sd completions bash)
 ```
 
 Or add it to `/etc/bash-completion.d`, as documented [in this guide](https://debian-administration.org/article/316/An_introduction_to_bash_completion_part_1).
+
+### Multiple sources
+
+`sd` loads scripts and dirs in the following order:
+
+- Your `$HOME/.sd` directory
+- Script directories listed in `SD_PATH`
+- The `scripts` directory under the current location
 
 ## Contributing
 

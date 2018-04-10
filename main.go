@@ -36,12 +36,14 @@ func main() {
 
 	err := loadCommandsInto(root)
 	if err != nil {
-		panic(err)
+		logrus.Debugf("Error loading commands: %v", err)
+		os.Exit(-1)
 	}
 
 	err = root.Execute()
 	if err != nil {
-		panic(err)
+		logrus.Debugf("Error executing command: %v", err)
+		os.Exit(-1)
 	}
 }
 
@@ -226,7 +228,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 					logrus.Debug("$VISUAL not set, trying $EDITOR...")
 					editor = os.Getenv("EDITOR")
 					if editor == "" {
-					logrus.Debug("$EDITOR not set, trying $(which vim)...")
+						logrus.Debug("$EDITOR not set, trying $(which vim)...")
 						editor = "$(which vim)"
 					}
 				}

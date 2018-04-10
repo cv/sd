@@ -14,9 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// These variables are set by the build process (see Makefile)
 var (
-	// Version of the application (SemVer)
 	version string
 )
 
@@ -223,11 +221,18 @@ func commandFromScript(path string) (*cobra.Command, error) {
 				return err
 			}
 			if edit {
-				editor := os.Getenv("EDITOR")
+				editor := os.Getenv("VISUAL")
 				if editor == "" {
-					editor = "/usr/bin/vim"
+					logrus.Debug("$VISUAL not set, trying $EDITOR...")
+					editor = os.Getenv("EDITOR")
+					if editor == "" {
+					logrus.Debug("$EDITOR not set, trying $(which vim)...")
+						editor = "$(which vim)"
+					}
 				}
-				return syscall.Exec(editor, []string{editor, src}, os.Environ())
+				cmdline := []string{"sh", "-c", strings.Join([]string{editor, src}, " ")}
+				logrus.Debug("Running ", cmdline)
+				return syscall.Exec("/bin/sh", cmdline, os.Environ())
 
 			} else {
 				logrus.Debug("Exec: ", src, " with args: ", args)

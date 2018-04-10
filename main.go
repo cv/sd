@@ -27,6 +27,7 @@ func main() {
 	}
 	root.AddCommand(completions(root))
 	root.PersistentFlags().BoolP("debug", "d", false, "Turn debugging on/off")
+	root.PersistentFlags().BoolP("edit", "e", false, "Edit command")
 
 	// Flags haven't been parsed yet, we need to do it ourselves
 	for _, arg := range os.Args {
@@ -212,19 +213,32 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		Use:     filepath.Base(path),
 		Short:   shortDesc,
 		Example: example,
+		Annotations: map[string]string{
+			"Source": path,
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return sh(path, args)
+			src := cmd.Annotations["Source"]
+			edit, err := cmd.Flags().GetBool("edit")
+			if err != nil {
+				return err
+			}
+			if edit {
+				editor := os.Getenv("EDITOR")
+				if editor == "" {
+					editor = "/usr/bin/vim"
+				}
+				return syscall.Exec(editor, []string{editor, src}, os.Environ())
+
+			} else {
+				logrus.Debug("Exec: ", src, " with args: ", args)
+				return syscall.Exec(src, append([]string{src}, args...), os.Environ())
+			}
 		},
 	}
 
 	logrus.Debug("Created command: ", filepath.Base(path))
 
 	return cmd, nil
-}
-
-func sh(cmd string, args []string) error {
-	logrus.Debug("Exec: ", cmd, " with args: ", args)
-	return syscall.Exec(cmd, append([]string{cmd}, args...), os.Environ())
 }
 
 func completions(root *cobra.Command) *cobra.Command {

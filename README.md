@@ -57,7 +57,7 @@ Flags:
 Use "sd foo [command] --help" for more information about a command.
 ```
 
-The `bar` script *must* be marked executable (`chmod +x`). The help text for it looks like this:
+The `bar` script *must* be marked executable (`chmod +x`). Any files not marked executable will be ignored. The help text for it looks like this:
 
 ```
 $ sd foo bar --help
@@ -83,10 +83,19 @@ In order to document the script, `sd` pays attention to a few special comments:
 # example: foo bar 123
 #
 
-echo "sd foo bar"
+echo "sd foo bar has been called"
 ```
 
 More will be added in the future, so you'll be able to specify and document flags, environment variables, and so on.
+
+## Running
+
+`sd` pays attention to the following flags:
+
+* `-d`, `--debug`: Turn on debugging. Especially useful if you are trying to figure out why any given script isn't loading, or isn't loading quite like you'd want it.
+* `-e`, `--edit`: Instead of executing a script, `sd` will open it in your favorite editor, as defined by the `EDITOR` environment variable.
+* `-h`, `--help`: Shows help text for anything.
+* `--version`: Displays the version information and exits.
 
 ## Installing
 

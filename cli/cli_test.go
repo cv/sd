@@ -1,7 +1,10 @@
 package cli
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -115,5 +118,31 @@ func TestDeduplicate(t *testing.T) {
 }
 
 func TestShortDescriptionFrom(t *testing.T) {
+	f, err := ioutil.TempFile("", "test-short-description")
+	assert.NoError(t, err)
 
+	f.WriteString(fmt.Sprintf("#\n# %s: blah\n#\n", filepath.Base(f.Name())))
+	defer func() {
+		f.Close()
+		os.Remove(f.Name())
+	}()
+
+	v, err := shortDescriptionFrom(f.Name())
+	assert.NoError(t, err)
+	assert.Equal(t, "blah", v)
+}
+
+func TestExampleFrom(t *testing.T) {
+	f, err := ioutil.TempFile("", "test-example")
+	assert.NoError(t, err)
+
+	f.WriteString("#\n# example: blah\n#\n")
+	defer func() {
+		f.Close()
+		os.Remove(f.Name())
+	}()
+
+	v, err := exampleFrom(f.Name())
+	assert.NoError(t, err)
+	assert.Equal(t, "  sd blah", v)
 }

@@ -118,31 +118,83 @@ func TestDeduplicate(t *testing.T) {
 }
 
 func TestShortDescriptionFrom(t *testing.T) {
-	f, err := ioutil.TempFile("", "test-short-description")
-	assert.NoError(t, err)
+	t.Run("happy path", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "test-short-description-ok")
+		assert.NoError(t, err)
 
-	f.WriteString(fmt.Sprintf("#\n# %s: blah\n#\n", filepath.Base(f.Name())))
-	defer func() {
-		f.Close()
-		os.Remove(f.Name())
-	}()
+		f.WriteString(fmt.Sprintf("#\n# %s: blah\n#\n", filepath.Base(f.Name())))
+		defer func() {
+			f.Close()
+			os.Remove(f.Name())
+		}()
 
-	v, err := shortDescriptionFrom(f.Name())
-	assert.NoError(t, err)
-	assert.Equal(t, "blah", v)
+		v, err := shortDescriptionFrom(f.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, "blah", v)
+	})
+	t.Run("missing", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "test-short-description-missing")
+		assert.NoError(t, err)
+
+		f.WriteString("#\n#\n#\n")
+		defer func() {
+			f.Close()
+			os.Remove(f.Name())
+		}()
+
+		v, err := shortDescriptionFrom(f.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, "", v)
+	})
 }
 
 func TestExampleFrom(t *testing.T) {
-	f, err := ioutil.TempFile("", "test-example")
-	assert.NoError(t, err)
+	t.Run("happy path", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "test-example-ok")
+		assert.NoError(t, err)
 
-	f.WriteString("#\n# example: blah\n#\n")
-	defer func() {
-		f.Close()
-		os.Remove(f.Name())
-	}()
+		f.WriteString("#\n# example: blah\n#\n")
+		defer func() {
+			_ = f.Close()
+			_ = os.Remove(f.Name())
+		}()
 
-	v, err := exampleFrom(f.Name())
-	assert.NoError(t, err)
-	assert.Equal(t, "  sd blah", v)
+		v, err := exampleFrom(f.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, "  sd blah", v)
+	})
+	t.Run("missing", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "test-example-missing")
+		assert.NoError(t, err)
+
+		f.WriteString("#\n#\n#\n")
+		defer func() {
+			_ = f.Close()
+			_ = os.Remove(f.Name())
+		}()
+
+		v, err := exampleFrom(f.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, "", v)
+	})
+}
+
+func TestCommandFromScript(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "test-command-from-script")
+		assert.NoError(t, err)
+
+		f.WriteString(fmt.Sprintf("#\n# %s: blah\n# example: one two three\n#\n", filepath.Base(f.Name())))
+		defer func() {
+			f.Close()
+			os.Remove(f.Name())
+		}()
+
+		c, err := commandFromScript(f.Name())
+		assert.NoError(t, err)
+		assert.Equal(t, filepath.Base(f.Name()), c.Use)
+		assert.Equal(t, "blah", c.Short)
+		assert.Equal(t, "  sd one two three", c.Example)
+		assert.Equal(t, f.Name(), c.Annotations["Source"])
+	})
 }

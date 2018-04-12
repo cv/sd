@@ -71,7 +71,10 @@ func (s *sd) Run() error {
 
 func (s *sd) initAliasing() {
 	s.root.PersistentFlags().StringP("alias", "a", "sd", "Use an alias in help text and completions")
-	s.root.PersistentFlags().MarkHidden("alias")
+	err := s.root.PersistentFlags().MarkHidden("alias")
+	if err != nil {
+		panic(err)
+	}
 
 	s.root.PersistentPreRunE = func(_ *cobra.Command, args []string) error {
 		alias, err := s.root.PersistentFlags().GetString("alias")
@@ -237,7 +240,12 @@ func shortDescriptionFrom(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	r := regexp.MustCompile(fmt.Sprintf(`^# %s: (.*)$`, regexp.QuoteMeta(filepath.Base(path))))
 	scanner := bufio.NewScanner(file)
@@ -263,7 +271,12 @@ func exampleFrom(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
 
 	r := regexp.MustCompile(`^# example: (.*)$`)
 	scanner := bufio.NewScanner(file)

@@ -295,35 +295,43 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		Annotations: map[string]string{
 			"Source": path,
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-			src := cmd.Annotations["Source"]
-			edit, err := cmd.Flags().GetBool("edit")
-			if err != nil {
-				return err
-			}
-
-			if edit {
-				editor := os.Getenv("VISUAL")
-				if editor == "" {
-					logrus.Debug("$VISUAL not set, trying $EDITOR...")
-					editor = os.Getenv("EDITOR")
-					if editor == "" {
-						logrus.Debug("$EDITOR not set, trying $(which vim)...")
-						editor = "$(which vim)"
-					}
-				}
-				cmdline := []string{"sh", "-c", strings.Join([]string{editor, src}, " ")}
-				logrus.Debug("Running ", cmdline)
-				return syscall.Exec("/bin/sh", cmdline, os.Environ())
-			}
-
-			logrus.Debug("Exec: ", src, " with args: ", args)
-			return syscall.Exec(src, append([]string{src}, args...), os.Environ())
-		},
+		RunE: execCommand,
 	}
 
 	logrus.Debug("Created command: ", filepath.Base(path))
 	return cmd, nil
+}
+
+// these get mocked in tests
+var (
+	syscallExec = syscall.Exec
+	env = os.Getenv
+)
+
+func execCommand(cmd *cobra.Command, args []string) error {
+	src := cmd.Annotations["Source"]
+	edit, err := cmd.Root().PersistentFlags().GetBool("edit")
+	if err != nil {
+		return err
+	}
+
+	if edit {
+		editor := env("VISUAL")
+		if editor == "" {
+			logrus.Debug("$VISUAL not set, trying $EDITOR...")
+			editor = env("EDITOR")
+			if editor == "" {
+				logrus.Debug("$EDITOR not set, trying $(which vim)...")
+				editor = "$(which vim)"
+			}
+		}
+		cmdline := []string{"sh", "-c", strings.Join([]string{editor, src}, " ")}
+		logrus.Debug("Running ", cmdline)
+		return syscallExec("/bin/sh", cmdline, os.Environ())
+	}
+
+	logrus.Debug("Exec: ", src, " with args: ", args)
+	return syscallExec(src, append([]string{src}, args...), os.Environ())
 }
 
 /*

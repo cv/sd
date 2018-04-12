@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/Sirupsen/logrus"
@@ -196,5 +197,144 @@ func TestCommandFromScript(t *testing.T) {
 		assert.Equal(t, "blah", c.Short)
 		assert.Equal(t, "  sd one two three", c.Example)
 		assert.Equal(t, f.Name(), c.Annotations["Source"])
+	})
+}
+
+func TestExecCommand(t *testing.T) {
+	t.Run("edit with VISUAL", func(t *testing.T) {
+		sd := &sd{root: &cobra.Command{}}
+		sd.initEditing()
+		sd.root.PersistentFlags().Set("edit", "true")
+
+		defer func() {
+			syscallExec = syscall.Exec
+			env = os.Getenv
+		}()
+
+		env = func(key string) string {
+			if key == "VISUAL" {
+				return "some-visual-editor"
+			}
+			return ""
+		}
+
+		syscallExec = func(argv0 string, argv []string, envv []string) error {
+			assert.Equal(t, "/bin/sh", argv0)
+			assert.Equal(t, []string{"sh", "-c", "some-visual-editor /path/to/foo"}, argv)
+			return nil
+		}
+
+		cmd := &cobra.Command{
+			Use: "foo",
+			Annotations: map[string]string{
+				"Source": "/path/to/foo",
+			},
+		}
+		sd.root.AddCommand(cmd)
+
+		err := execCommand(cmd, []string{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("edit with EDITOR", func(t *testing.T) {
+		sd := &sd{root: &cobra.Command{}}
+		sd.initEditing()
+		sd.root.PersistentFlags().Set("edit", "true")
+
+		defer func() {
+			syscallExec = syscall.Exec
+			env = os.Getenv
+		}()
+
+		env = func(key string) string {
+			if key == "VISUAL" {
+				return ""
+			}
+			if key == "EDITOR" {
+				return "some-editor"
+			}
+			return ""
+		}
+
+		syscallExec = func(argv0 string, argv []string, envv []string) error {
+			assert.Equal(t, "/bin/sh", argv0)
+			assert.Equal(t, []string{"sh", "-c", "some-editor /path/to/foo"}, argv)
+			return nil
+		}
+
+		cmd := &cobra.Command{
+			Use: "foo",
+			Annotations: map[string]string{
+				"Source": "/path/to/foo",
+			},
+		}
+		sd.root.AddCommand(cmd)
+
+		err := execCommand(cmd, []string{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("edit with default vim", func(t *testing.T) {
+		sd := &sd{root: &cobra.Command{}}
+		sd.initEditing()
+		sd.root.PersistentFlags().Set("edit", "true")
+
+		defer func() {
+			syscallExec = syscall.Exec
+			env = os.Getenv
+		}()
+
+		env = func(key string) string {
+			return ""
+		}
+
+		syscallExec = func(argv0 string, argv []string, envv []string) error {
+			assert.Equal(t, "/bin/sh", argv0)
+			assert.Equal(t, []string{"sh", "-c", "$(which vim) /path/to/foo"}, argv)
+			return nil
+		}
+
+		cmd := &cobra.Command{
+			Use: "foo",
+			Annotations: map[string]string{
+				"Source": "/path/to/foo",
+			},
+		}
+		sd.root.AddCommand(cmd)
+
+		err := execCommand(cmd, []string{})
+		assert.NoError(t, err)
+	})
+
+	t.Run("exec script", func(t *testing.T) {
+		sd := &sd{root: &cobra.Command{}}
+		sd.initEditing()
+
+		defer func() {
+			syscallExec = syscall.Exec
+			env = os.Getenv
+		}()
+
+		env = func(key string) string {
+			return ""
+		}
+
+		syscallExec = func(argv0 string, argv []string, envv []string) error {
+			assert.Equal(t, "/path/to/foo", argv0)
+			assert.Equal(t, []string{"/path/to/foo", "bar"}, argv)
+			return nil
+		}
+
+		cmd := &cobra.Command{
+			Use: "foo",
+			Annotations: map[string]string{
+				"Source": "/path/to/foo",
+			},
+		}
+		sd.root.AddCommand(cmd)
+
+		err := execCommand(cmd, []string{"bar"})
+		assert.NoError(t, err)
+
 	})
 }

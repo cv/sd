@@ -4,6 +4,7 @@ workflows:
   version: 2
   release-tag:
     jobs:
+      - test:
       - release:
           filters:
             branches:
@@ -12,6 +13,22 @@ workflows:
               only: /^v.*/
 
 jobs:
+  test:
+    docker:
+      - image: circleci/golang
+    working_directory: /go/src/github.com/cv/sd
+    steps:
+      - checkout
+      - run:
+          name: Get dependencies
+          command: |
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+      - run:
+          name: Tests
+          command: |
+            go test ./...
+
   release:
     docker:
       - image: circleci/golang

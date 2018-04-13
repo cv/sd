@@ -4,7 +4,7 @@ workflows:
   version: 2
   release-tag:
     jobs:
-      - test:
+      - test
       - release:
           filters:
             branches:

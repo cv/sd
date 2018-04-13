@@ -2,6 +2,25 @@
 
 A tool to keep utility scripts neatly organized.
 
+<!-- toc -->
+
+- [Overview](#overview)
+- [Installing](#installing)
+    + [Homebrew](#homebrew)
+    + [Go](#go)
+    + [Other distributions](#other-distributions)
+- [Running](#running)
+  * [Flags](#flags)
+  * [Aliasing](#aliasing)
+  * [Completions](#completions)
+  * [Multiple sources](#multiple-sources)
+- [Contributing](#contributing)
+- [Thanks](#thanks)
+
+<!-- tocstop -->
+
+## Overview
+
 `sd` scans and provides completion for a nested tree of executable script files. For example, if you want to be able to run:
 
 ```shell
@@ -63,7 +82,6 @@ In order to document the script, `sd` pays attention to a few special comments:
 #
 # example: foo bar 123
 #
-
 echo "sd foo bar has been called"
 ```
 
@@ -71,7 +89,7 @@ More will be added in the future, so you'll be able to specify and document flag
 
 ## Installing
 
-### Homebrew
+#### Homebrew
 
 The easiest way to install and keep `sd` up-to-date for MacOS users is through [Homebrew](https://brew.sh). First, add the `cv/taps` tap to your Homebrew install:
 
@@ -97,11 +115,15 @@ $ brew install sd
 🍺  /usr/local/Cellar/sd/0.1.1: 5 files, 3MB, built in 7 seconds
 ```
 
+#### Go
+
 If you have a Go development environment installed, `go get` should work as expected:
 
 ```shell
 $ go get -u github.com/cv/sd
 ```
+
+#### Other distributions
 
 Alternatively, you can grab one of the packages from the [Releases](https://github.com/cv/sd/releases) tab.
 
@@ -115,6 +137,23 @@ Alternatively, you can grab one of the packages from the [Releases](https://gith
 * `-e` or `--edit`: Instead of executing a script, `sd` will open it in your favorite editor, as defined by the `VISUAL` or `EDITOR` environment variables.
 * `-h` or `--help`: Shows help text for anything.
 * `--version`: Displays the version information and exits.
+
+### Aliasing
+
+The hidden `--alias=STRING` flag tells `sd` to behave as if it were called `STRING`. This is useful when aliasing `sd` to something else more memorable, or to scope it to the specific usage of a project.
+
+For example, if you call it with `sd --alias foo`, it will show the following usage:
+
+```
+Usage:
+  foo [flags]
+  foo [command]
+
+Available Commands:
+...
+
+Use "foo [command] --help" for more information about a command.
+```
 
 ### Completions
 

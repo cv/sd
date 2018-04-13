@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -260,6 +261,43 @@ func shortDescriptionFrom(path string) (string, error) {
 }
 
 /*
+Argument validators. Looks for a line like this:
+
+# args: 3
+
+ */
+func argsFrom(path string) (cobra.PositionalArgs, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	r := regexp.MustCompile(`^# args: (\d+)$`)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		match := r.FindStringSubmatch(scanner.Text())
+		if len(match) == 2 {
+			logrus.Debug("Found example line: ", filepath.Join(path), ", set to: ", match[1])
+			i, err := strconv.ParseUint(match[1], 10, 32)
+			if err != nil {
+				return nil, err
+			}
+			if i == 0 {
+				return cobra.NoArgs, nil
+			}
+			return cobra.ExactArgs(int(i)), nil
+		}
+	}
+	return cobra.ArbitraryArgs, nil
+}
+
+/*
 
 Looks for a line like this:
 
@@ -301,6 +339,11 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		return nil, err
 	}
 
+	args, err := argsFrom(path)
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := &cobra.Command{
 		Use:     filepath.Base(path),
 		Short:   shortDesc,
@@ -308,6 +351,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		Annotations: map[string]string{
 			"Source": path,
 		},
+		Args: args,
 		RunE: execCommand,
 	}
 
@@ -318,7 +362,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 // these get mocked in tests
 var (
 	syscallExec = syscall.Exec
-	env = os.Getenv
+	env         = os.Getenv
 )
 
 func execCommand(cmd *cobra.Command, args []string) error {

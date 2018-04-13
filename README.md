@@ -81,6 +81,7 @@ In order to document the script, `sd` pays attention to a few special comments:
 # bar: Bars the foos.
 #
 # example: foo bar 123
+# args: 3
 #
 echo "sd foo bar has been called"
 ```

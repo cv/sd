@@ -165,6 +165,8 @@ $ source <(sd completions bash)
 
 Or add it to `/etc/bash-completion.d`, as documented [in this guide](https://debian-administration.org/article/316/An_introduction_to_bash_completion_part_1).
 
+Mixing [aliasing](#aliasing) and [completions](#completions) can be very useful in creating a CLI experience that provides inline documentation, good completion and a familiar, integrated, look-and-feel.
+
 ### Multiple sources
 
 `sd` loads scripts and dirs in the following order:

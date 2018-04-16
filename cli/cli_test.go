@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"testing"
 
@@ -100,24 +99,6 @@ func TestInitEditing(t *testing.T) {
 
 	t.Run("creates flag", func(t *testing.T) {
 		assert.NotNil(t, sd.root.PersistentFlags().Lookup("edit"))
-	})
-}
-
-func TestDeduplicate(t *testing.T) {
-	t.Run("simple", func(t *testing.T) {
-		assert.Equal(t, []string{"a"}, deduplicate(strings.Split("aaaaaa", "")))
-	})
-
-	t.Run("two elements", func(t *testing.T) {
-		assert.Equal(t, []string{"a", "b"}, deduplicate(strings.Split("aaaabb", "")))
-	})
-
-	t.Run("two elements repeated", func(t *testing.T) {
-		assert.Equal(t, []string{"a", "b"}, deduplicate(strings.Split("ababab", "")))
-	})
-
-	t.Run("maintains ordering", func(t *testing.T) {
-		assert.Equal(t, []string{"a", "c", "b"}, deduplicate(strings.Split("acbabab", "")))
 	})
 }
 

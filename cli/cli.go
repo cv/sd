@@ -286,6 +286,9 @@ func execCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	logrus.Debug("Exec: ", src, " with args: ", args)
-	return syscallExec(src, append([]string{src}, args...), os.Environ())
+	return syscallExec(src, append([]string{src}, args...), makeEnv(cmd))
 }
 
+func makeEnv(cmd *cobra.Command) []string {
+	return os.Environ()
+}

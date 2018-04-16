@@ -52,6 +52,60 @@ func TestShortDescriptionFrom(t *testing.T) {
 	}
 }
 
+func TestUsageFrom(t *testing.T) {
+	var tests = []struct {
+		name  string
+		input string
+		check func(t *testing.T, name string, actual string)
+	}{
+		{
+			"happy path with no arguments",
+			"#\n# usage: blah\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah", actual)
+			},
+		},
+		{
+			"happy path with arguments",
+			"#\n# usage: blah [foo] [bar]\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah [foo] [bar]", actual)
+			},
+		},
+		{
+			"missing",
+			"#\n#\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, name, actual)
+			},
+		},
+		{
+			"no input",
+			"",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, name, actual)
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			f, err := ioutil.TempFile("", test.name)
+			assert.NoError(t, err)
+
+			f.WriteString(test.input)
+			defer func() {
+				_ = f.Close()
+				_ = os.Remove(f.Name())
+			}()
+
+			v, err := usageFrom(f.Name())
+			assert.NoError(t, err)
+			test.check(t, filepath.Base(f.Name()), v)
+		})
+	}
+}
+
 func TestExampleFrom(t *testing.T) {
 	var tests = []struct {
 		name     string

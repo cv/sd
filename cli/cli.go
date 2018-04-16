@@ -185,7 +185,7 @@ func visitDir(path string) ([]*cobra.Command, error) {
 		case item.IsDir():
 			logrus.Debug("Found directory: ", filepath.Join(path, item.Name()))
 			cmd := &cobra.Command{
-				Use: item.Name(),
+				Use: fmt.Sprintf("%s [command]", item.Name()),
 			}
 
 			readmePath := filepath.Join(path, item.Name(), "README")
@@ -242,8 +242,13 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		return nil, err
 	}
 
+	usage, err := usageFrom(path)
+	if err != nil {
+		return nil, err
+	}
+
 	cmd := &cobra.Command{
-		Use:     filepath.Base(path),
+		Use:     usage,
 		Short:   shortDesc,
 		Example: example,
 		Annotations: map[string]string{

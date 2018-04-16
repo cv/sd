@@ -79,9 +79,9 @@ In order to document the script, `sd` pays attention to a few special comments:
 #!/bin/sh
 #
 # bar: Bars the foos.
-#
-# example: foo bar 123
-# args: 3
+# usage: bar foo quux
+# example: bar 12 23
+# args: 2
 #
 echo "sd foo bar has been called"
 ```

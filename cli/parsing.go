@@ -47,6 +47,37 @@ func shortDescriptionFrom(path string) (string, error) {
 
 Looks for a line like this:
 
+# usage: foo arg1 arg2
+
+*/
+func usageFrom(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			logrus.Error(err)
+		}
+	}()
+
+	r := regexp.MustCompile(`^# usage: (.*)$`)
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		match := r.FindStringSubmatch(scanner.Text())
+		if len(match) == 2 {
+			logrus.Debug("Found usage line: ", filepath.Join(path), ", set to: ", match[1])
+			return match[1], nil
+		}
+	}
+	return filepath.Base(path), nil
+}
+
+/*
+
+Looks for a line like this:
+
 # example: foo bar 1 2 3
 
 */

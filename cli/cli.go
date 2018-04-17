@@ -80,6 +80,7 @@ func (s *sd) initAliasing() {
 			return err
 		}
 		s.root.Use = alias
+		s.root.Version = fmt.Sprintf("%s (aliased to %s)", s.root.Version, alias)
 		logrus.Debug("Aliasing: sd replaced with ", alias, " in help text")
 		return nil
 	}

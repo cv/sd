@@ -17,7 +17,9 @@ import (
 
 func TestInitAliasing(t *testing.T) {
 	sd := &sd{
-		root: &cobra.Command{},
+		root: &cobra.Command{
+			Version: "1.0",
+		},
 	}
 	sd.initAliasing()
 
@@ -40,6 +42,7 @@ func TestInitAliasing(t *testing.T) {
 		_, err := sd.root.PersistentFlags().GetString("alias")
 		assert.NoError(t, err)
 		assert.Equal(t, "quack", sd.root.Use)
+		assert.Equal(t, "1.0 (aliased to quack)", sd.root.Version)
 	})
 }
 

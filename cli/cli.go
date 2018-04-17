@@ -237,12 +237,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		return nil, err
 	}
 
-	args, err := argsFrom(path)
-	if err != nil {
-		return nil, err
-	}
-
-	usage, err := usageFrom(path)
+	usage, args, err := usageFrom(path)
 	if err != nil {
 		return nil, err
 	}

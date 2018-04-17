@@ -54,22 +54,58 @@ func TestShortDescriptionFrom(t *testing.T) {
 
 func TestUsageFrom(t *testing.T) {
 	var tests = []struct {
-		name  string
-		input string
-		check func(t *testing.T, name string, actual string)
+		name       string
+		input      string
+		checkUsage func(t *testing.T, name string, actual string)
+		checkArgs  func(t *testing.T, v cobra.PositionalArgs)
 	}{
 		{
-			"happy path with no arguments",
+			"no arguments",
 			"#\n# usage: blah\n#\n",
 			func(t *testing.T, name string, actual string) {
 				assert.Equal(t, "blah", actual)
 			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.NoError(t, v(&cobra.Command{}, []string{}))
+				assert.Error(t, v(&cobra.Command{}, []string{"first"}))
+				assert.Error(t, v(&cobra.Command{}, []string{"first", "second"}))
+			},
 		},
 		{
-			"happy path with arguments",
-			"#\n# usage: blah [foo] [bar]\n#\n",
+			"mandatory argument",
+			"#\n# usage: blah foo\n#\n",
 			func(t *testing.T, name string, actual string) {
-				assert.Equal(t, "blah [foo] [bar]", actual)
+				assert.Equal(t, "blah foo", actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.Error(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.Error(t, v(&cobra.Command{}, []string{"first", "second"}))
+			},
+		},
+		{
+			"optional argument",
+			"#\n# usage: blah [foo]\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah [foo]", actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.NoError(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.Error(t, v(&cobra.Command{}, []string{"first", "second"}))
+			},
+		},
+		{
+			"mandatory and optional arguments",
+			"#\n# usage: blah foo [bar]\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah foo [bar]", actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.Error(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
+				assert.Error(t, v(&cobra.Command{}, []string{"first", "second", "third"}))
 			},
 		},
 		{
@@ -78,12 +114,22 @@ func TestUsageFrom(t *testing.T) {
 			func(t *testing.T, name string, actual string) {
 				assert.Equal(t, name, actual)
 			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.NoError(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
+			},
 		},
 		{
 			"no input",
 			"",
 			func(t *testing.T, name string, actual string) {
 				assert.Equal(t, name, actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.NoError(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
 			},
 		},
 	}
@@ -99,9 +145,10 @@ func TestUsageFrom(t *testing.T) {
 				_ = os.Remove(f.Name())
 			}()
 
-			v, err := usageFrom(f.Name())
+			usage, args, err := usageFrom(f.Name())
 			assert.NoError(t, err)
-			test.check(t, filepath.Base(f.Name()), v)
+			test.checkUsage(t, filepath.Base(f.Name()), usage)
+			test.checkArgs(t, args)
 		})
 	}
 }
@@ -143,86 +190,6 @@ func TestExampleFrom(t *testing.T) {
 			v, err := exampleFrom(f.Name())
 			assert.NoError(t, err)
 			assert.Equal(t, test.expected, v)
-		})
-	}
-}
-
-func TestArgsFrom(t *testing.T) {
-	var tests = []struct {
-		name  string
-		input string
-		check func(t *testing.T, v cobra.PositionalArgs, err error)
-	}{
-		{
-			"happy path with 2 args",
-			"#\n# args: 2\n#\n",
-			func(t *testing.T, v cobra.PositionalArgs, err error) {
-				assert.NoError(t, err)
-				assert.Error(t, v(&cobra.Command{}, []string{}))
-				assert.Error(t, v(&cobra.Command{}, []string{"first"}))
-				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
-				assert.Error(t, v(&cobra.Command{}, []string{"first", "second", "third"}))
-			},
-		},
-		{
-			"happy path with no args",
-			"#\n# args: 0\n#\n",
-			func(t *testing.T, v cobra.PositionalArgs, err error) {
-				assert.NoError(t, err)
-				assert.NoError(t, v(&cobra.Command{}, []string{}))
-				assert.Error(t, v(&cobra.Command{}, []string{"first"}))
-				assert.Error(t, v(&cobra.Command{}, []string{"first", "second"}))
-			},
-		},
-		{
-			"missing",
-			"",
-			func(t *testing.T, v cobra.PositionalArgs, err error) {
-				assert.NoError(t, err)
-				assert.NoError(t, v(&cobra.Command{}, []string{}))
-				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
-			},
-		},
-		{
-			"bad value: not numeric",
-			"#\n# args: banana\n#\n",
-			func(t *testing.T, v cobra.PositionalArgs, err error) {
-				assert.NoError(t, err)
-				assert.NoError(t, v(&cobra.Command{}, []string{}))
-				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
-			},
-		},
-		{
-			"bad value: too large",
-			"#\n# args: 999999999999999999999999999999999999999999999999999999999999999999999999\n#\n",
-			func(t *testing.T, v cobra.PositionalArgs, err error) {
-				assert.Error(t, err)
-			},
-		},
-		{
-			"no input",
-			"",
-			func(t *testing.T, v cobra.PositionalArgs, err error) {
-				assert.NoError(t, err)
-				assert.NoError(t, v(&cobra.Command{}, []string{}))
-				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
-			},
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			f, err := ioutil.TempFile("", test.name)
-			assert.NoError(t, err)
-
-			f.WriteString(test.input)
-			defer func() {
-				f.Close()
-				os.Remove(f.Name())
-			}()
-
-			v, err := argsFrom(f.Name())
-			test.check(t, v, err)
 		})
 	}
 }

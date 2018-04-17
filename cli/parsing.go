@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -45,15 +45,16 @@ func shortDescriptionFrom(path string) (string, error) {
 
 /*
 
-Looks for a line like this:
+Looks for lines like this:
 
 # usage: foo arg1 arg2
+# usage: foo [arg1] [arg2]
 
 */
-func usageFrom(path string) (string, error) {
+func usageFrom(path string) (string, cobra.PositionalArgs, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return "", err
+		return "", cobra.ArbitraryArgs, err
 	}
 	defer func() {
 		err = file.Close()
@@ -67,11 +68,27 @@ func usageFrom(path string) (string, error) {
 	for scanner.Scan() {
 		match := r.FindStringSubmatch(scanner.Text())
 		if len(match) == 2 {
-			logrus.Debug("Found usage line: ", filepath.Join(path), ", set to: ", match[1])
-			return match[1], nil
+			line := match[1]
+			logrus.Debug("Found usage line: ", filepath.Join(path), ", set to: ", line)
+
+			parts := strings.Split(line, " ")
+			if len(parts) == 1 {
+				return line, cobra.NoArgs, nil
+			}
+
+			var required, optional int
+			for _, i := range parts[1:] {
+				if strings.HasPrefix(i, "[") && strings.HasSuffix(i, "]") {
+					optional++
+				} else {
+					required++
+				}
+			}
+
+			return match[1], cobra.RangeArgs(required, required+optional), nil
 		}
 	}
-	return filepath.Base(path), nil
+	return filepath.Base(path), cobra.ArbitraryArgs, nil
 }
 
 /*
@@ -103,41 +120,4 @@ func exampleFrom(path string) (string, error) {
 		}
 	}
 	return "", nil
-}
-
-/*
-Argument validators. Looks for a line like this:
-
-# args: 3
-
- */
-func argsFrom(path string) (cobra.PositionalArgs, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		err = file.Close()
-		if err != nil {
-			logrus.Error(err)
-		}
-	}()
-
-	r := regexp.MustCompile(`^# args: (\d+)$`)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		match := r.FindStringSubmatch(scanner.Text())
-		if len(match) == 2 {
-			logrus.Debug("Found example line: ", filepath.Join(path), ", set to: ", match[1])
-			i, err := strconv.ParseUint(match[1], 10, 32)
-			if err != nil {
-				return nil, err
-			}
-			if i == 0 {
-				return cobra.NoArgs, nil
-			}
-			return cobra.ExactArgs(int(i)), nil
-		}
-	}
-	return cobra.ArbitraryArgs, nil
 }

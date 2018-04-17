@@ -74,16 +74,21 @@ func (s *sd) initAliasing() {
 		panic(err)
 	}
 
-	s.root.PersistentPreRunE = func(_ *cobra.Command, args []string) error {
-		alias, err := s.root.PersistentFlags().GetString("alias")
-		if err != nil {
-			return err
+	s.root.Use = "sd"
+
+	// Flags haven't been parsed yet, we need to do it ourselves
+	for i, arg := range os.Args {
+		if (arg == "-a" || arg == "--alias") && len(os.Args) >= i+2 {
+			alias := os.Args[i+1]
+			if alias == "" {
+				break
+			}
+			s.root.Use = alias
+			s.root.Version = fmt.Sprintf("%s (aliased to %s)", s.root.Version, alias)
+			logrus.Debug("Aliasing: sd replaced with ", alias, " in help text")
 		}
-		s.root.Use = alias
-		s.root.Version = fmt.Sprintf("%s (aliased to %s)", s.root.Version, alias)
-		logrus.Debug("Aliasing: sd replaced with ", alias, " in help text")
-		return nil
 	}
+
 	s.root.RunE = showUsage
 }
 

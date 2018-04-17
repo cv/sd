@@ -16,34 +16,69 @@ import (
 )
 
 func TestInitAliasing(t *testing.T) {
-	sd := &sd{
-		root: &cobra.Command{
-			Version: "1.0",
+	var tests = []struct {
+		name     string
+		args     []string
+		expected string
+	}{
+		{
+			"defaults to sd",
+			[]string{},
+			"sd",
+		},
+		{
+			"changes usage string (short)",
+			[]string{"-a", "quack"},
+			"quack",
+		},
+		{
+			"changes usage string (long)",
+			[]string{"--alias", "quack"},
+			"quack",
+		},
+		{
+			"does not change usage when empty",
+			[]string{"--alias", ""},
+			"sd",
+		},
+		{
+			"does not change usage when not given",
+			[]string{"--alias"},
+			"sd",
+		},
+		{
+			"keeps last when multiple given",
+			[]string{"--alias", "foo", "--alias", "bar"},
+			"bar",
+		},
+		{
+			"ignores other params",
+			[]string{"--foo", "foo", "--alias", "quack", "--bar", "bar"},
+			"quack",
 		},
 	}
-	sd.initAliasing()
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var restore []string
+			copy(restore, os.Args)
+			defer func() {
+				copy(os.Args, restore)
+			}()
 
-	t.Run("flag is hidden", func(t *testing.T) {
-		assert.True(t, sd.root.PersistentFlags().Lookup("alias").Hidden)
-	})
+			os.Args = test.args
 
-	t.Run("adds a default alias flag", func(t *testing.T) {
-		sd.root.ParseFlags([]string{""})
+			sd := &sd{
+				root: &cobra.Command{
+					Version: "1.0",
+				},
+			}
 
-		v, err := sd.root.PersistentFlags().GetString("alias")
-		assert.NoError(t, err)
-		assert.Equal(t, "sd", v)
-	})
+			sd.initAliasing()
 
-	t.Run("sets the name of the root command when aliased", func(t *testing.T) {
-		sd.root.ParseFlags([]string{"-a", "quack"})
-		sd.root.PersistentPreRunE(sd.root, []string{})
-
-		_, err := sd.root.PersistentFlags().GetString("alias")
-		assert.NoError(t, err)
-		assert.Equal(t, "quack", sd.root.Use)
-		assert.Equal(t, "1.0 (aliased to quack)", sd.root.Version)
-	})
+			assert.True(t, sd.root.PersistentFlags().Lookup("alias").Hidden)
+			assert.Equal(t, test.expected, sd.root.Use)
+		})
+	}
 }
 
 func TestInitCompletions(t *testing.T) {

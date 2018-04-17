@@ -223,7 +223,7 @@ func TestExecCommand(t *testing.T) {
 		syscallExec = func(argv0 string, argv []string, envv []string) error {
 			called = true
 			assert.Equal(t, "/bin/sh", argv0)
-			assert.Equal(t, []string{"sh", "-c", "$(which vim) /path/to/foo"}, argv)
+			assert.Equal(t, []string{"sh", "-c", "$(command -v vim) /path/to/foo"}, argv)
 			return nil
 		}
 

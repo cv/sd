@@ -278,7 +278,7 @@ func execCommand(cmd *cobra.Command, args []string) error {
 			editor = env("EDITOR")
 			if editor == "" {
 				logrus.Debug("$EDITOR not set, trying $(which vim)...")
-				editor = "$(which vim)"
+				editor = "$(command -v vim)"
 			}
 		}
 		cmdline := []string{"sh", "-c", strings.Join([]string{editor, src}, " ")}

@@ -79,6 +79,9 @@ func usageFrom(path string) (string, cobra.PositionalArgs, error) {
 
 			var required, optional int
 			for _, i := range parts[1:] {
+				if i == "..." {
+					continue
+				}
 				if strings.HasPrefix(i, "[") && strings.HasSuffix(i, "]") {
 					logrus.Debug("Found optional arg: ", i)
 					optional++
@@ -87,7 +90,10 @@ func usageFrom(path string) (string, cobra.PositionalArgs, error) {
 					required++
 				}
 			}
-
+			if parts[len(parts)-1] == "..." {
+				logrus.Debug("Minimum of ", required, " arguments set")
+				return match[1], cobra.MinimumNArgs(required), nil
+			}
 			logrus.Debug("Arg range of ", required, " and ", required+optional, " set")
 			return match[1], cobra.RangeArgs(required, required+optional), nil
 		}

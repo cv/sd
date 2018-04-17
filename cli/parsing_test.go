@@ -109,6 +109,48 @@ func TestUsageFrom(t *testing.T) {
 			},
 		},
 		{
+			"unlimited arguments, mixed",
+			"#\n# usage: blah foo [bar] ...\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah foo [bar] ...", actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.Error(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second", "third"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second", "third", "fourth"}))
+			},
+		},
+		{
+			"unlimited arguments, required",
+			"#\n# usage: blah foo bar ...\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah foo bar ...", actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.Error(t, v(&cobra.Command{}, []string{}))
+				assert.Error(t, v(&cobra.Command{}, []string{"first"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second", "third"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second", "third", "fourth"}))
+			},
+		},
+		{
+			"unlimited arguments, optional",
+			"#\n# usage: blah [bar] ...\n#\n",
+			func(t *testing.T, name string, actual string) {
+				assert.Equal(t, "blah [bar] ...", actual)
+			},
+			func(t *testing.T, v cobra.PositionalArgs) {
+				assert.NoError(t, v(&cobra.Command{}, []string{}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second", "third"}))
+				assert.NoError(t, v(&cobra.Command{}, []string{"first", "second", "third", "fourth"}))
+			},
+		},
+		{
 			"missing",
 			"#\n#\n#\n",
 			func(t *testing.T, name string, actual string) {

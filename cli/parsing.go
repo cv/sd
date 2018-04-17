@@ -73,21 +73,26 @@ func usageFrom(path string) (string, cobra.PositionalArgs, error) {
 
 			parts := strings.Split(line, " ")
 			if len(parts) == 1 {
+				logrus.Debug("No args allowed")
 				return line, cobra.NoArgs, nil
 			}
 
 			var required, optional int
 			for _, i := range parts[1:] {
 				if strings.HasPrefix(i, "[") && strings.HasSuffix(i, "]") {
+					logrus.Debug("Found optional arg: ", i)
 					optional++
 				} else {
+					logrus.Debug("Found required arg: ", i)
 					required++
 				}
 			}
 
+			logrus.Debug("Arg range of ", required, " and ", required+optional, " set")
 			return match[1], cobra.RangeArgs(required, required+optional), nil
 		}
 	}
+	logrus.Debug("Any args allowed")
 	return filepath.Base(path), cobra.ArbitraryArgs, nil
 }
 

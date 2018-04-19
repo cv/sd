@@ -326,6 +326,14 @@ func TestNew(t *testing.T) {
 	})
 }
 
+func TestRun(t *testing.T) {
+	t.Run("error if not initialized", func(t *testing.T) {
+		s := &sd{}
+		err := s.Run()
+		assert.Error(t, err)
+	})
+}
+
 func TestShowUsage(t *testing.T) {
 	cmd := &cobra.Command{}
 	called := false

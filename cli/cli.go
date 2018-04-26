@@ -238,26 +238,26 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		return nil, err
 	}
 
-	example, err := exampleFrom(path)
-	if err != nil {
-		return nil, err
-	}
-
 	usage, args, err := usageFrom(path)
 	if err != nil {
 		return nil, err
 	}
 
 	cmd := &cobra.Command{
-		Use:     usage,
-		Short:   shortDesc,
-		Example: example,
+		Use:   usage,
+		Short: shortDesc,
 		Annotations: map[string]string{
 			"Source": path,
 		},
 		Args: args,
 		RunE: execCommand,
 	}
+
+	example, err := exampleFrom(path, cmd)
+	if err != nil {
+		return nil, err
+	}
+	cmd.Example = example
 
 	logrus.Debug("Created command: ", filepath.Base(path))
 	return cmd, nil

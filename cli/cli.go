@@ -296,5 +296,5 @@ func execCommand(cmd *cobra.Command, args []string) error {
 }
 
 func makeEnv(cmd *cobra.Command) []string {
-	return os.Environ()
+	return append(os.Environ(), fmt.Sprintf("SD_ALIAS=%s", cmd.Root().Use))
 }

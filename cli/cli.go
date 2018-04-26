@@ -253,7 +253,7 @@ func commandFromScript(path string) (*cobra.Command, error) {
 		RunE: execCommand,
 	}
 
-	example, err := exampleFrom(path, cmd)
+	example, err := exampleFrom(path)
 	if err != nil {
 		return nil, err
 	}

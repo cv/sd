@@ -198,37 +198,21 @@ func TestUsageFrom(t *testing.T) {
 func TestExampleFrom(t *testing.T) {
 	var tests = []struct {
 		name     string
-		alias string
 		input    string
 		expected string
 	}{
 		{
 			"happy path",
-			"sd",
 			"#\n# example: blah\n#\n",
-			"  sd blah",
+			"  blah",
 		},
 		{
 			"missing",
-			"sd",
-			"#\n#\n#\n",
-			"",
-		},
-		{
-			"happy path (aliased)",
-			"foo",
-			"#\n# example: blah\n#\n",
-			"  foo blah",
-		},
-		{
-			"missing (aliased)",
-			"foo",
 			"#\n#\n#\n",
 			"",
 		},
 		{
 			"no input",
-			"sd",
 			"",
 			"",
 		},
@@ -245,7 +229,7 @@ func TestExampleFrom(t *testing.T) {
 				_ = os.Remove(f.Name())
 			}()
 
-			v, err := exampleFrom(f.Name(), &cobra.Command{Use: test.alias})
+			v, err := exampleFrom(f.Name())
 			assert.NoError(t, err)
 			assert.Equal(t, test.expected, v)
 		})

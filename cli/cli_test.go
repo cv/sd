@@ -155,7 +155,7 @@ func TestCommandFromScript(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, filepath.Base(f.Name()), c.Use)
 		assert.Equal(t, "blah", c.Short)
-		assert.Regexp(t, "  test-command-from-script(.*?) one two three", c.Example)
+		assert.Equal(t, "  one two three", c.Example)
 		assert.Equal(t, f.Name(), c.Annotations["Source"])
 	})
 }

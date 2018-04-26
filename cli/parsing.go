@@ -109,7 +109,7 @@ Looks for a line like this:
 # example: foo bar 1 2 3
 
 */
-func exampleFrom(path string, cmd *cobra.Command) (string, error) {
+func exampleFrom(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
@@ -127,7 +127,7 @@ func exampleFrom(path string, cmd *cobra.Command) (string, error) {
 		match := r.FindStringSubmatch(scanner.Text())
 		if len(match) == 2 {
 			logrus.Debug("Found example line: ", filepath.Join(path), ", set to: ", match[1])
-			return fmt.Sprintf("  %s %s", cmd.UseLine(), match[1]), nil
+			return fmt.Sprintf("  %s", match[1]), nil
 		}
 	}
 	return "", nil

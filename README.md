@@ -2,6 +2,8 @@
 
 A tool to keep utility scripts neatly organized.
 
+[![CircleCI](https://circleci.com/gh/cv/sd.svg?style=svg)](https://circleci.com/gh/cv/sd)
+
 <!-- toc -->
 
 - [Overview](#overview)

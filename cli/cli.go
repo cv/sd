@@ -48,7 +48,7 @@ func showUsage(cmd *cobra.Command, _ []string) error {
 }
 
 func (s *sd) Run() error {
-	if ! s.initialized {
+	if !s.initialized {
 		return fmt.Errorf("init() not called")
 	}
 

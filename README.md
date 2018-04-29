@@ -3,6 +3,8 @@
 A tool to keep utility scripts neatly organized.
 
 [![CircleCI](https://circleci.com/gh/cv/sd.svg?style=svg)](https://circleci.com/gh/cv/sd)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cv/sd)](https://goreportcard.com/report/github.com/cv/sd)
+[![Maintainability](https://api.codeclimate.com/v1/badges/8225cfac541d3281e160/maintainability)](https://codeclimate.com/github/cv/sd/maintainability)
 
 <!-- toc -->
 

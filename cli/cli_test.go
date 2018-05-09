@@ -412,3 +412,38 @@ func TestRunCompletionsZsh(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, out, "#compdef sd")
 }
+
+func TestMakeEnv(t *testing.T) {
+	t.Run("sets SD_ALIAS", func(t *testing.T) {
+		t.Run("when not aliased", func(t *testing.T) {
+			sd := New("1.0").(*sd)
+			env := makeEnv(sd.root)
+			assert.Equal(t, "SD_ALIAS=sd", env[len(env)-1])
+		})
+
+		t.Run("when aliased", func(t *testing.T) {
+			var restore []string
+			copy(restore, os.Args)
+			defer func() {
+				copy(os.Args, restore)
+			}()
+
+			os.Args = []string{"-a", "foo"}
+
+			sd := New("1.0").(*sd)
+			env := makeEnv(sd.root)
+			assert.Equal(t, "SD_ALIAS=foo", env[len(env)-1])
+		})
+	})
+
+	t.Run("sets DEBUG", func(t *testing.T) {
+		root := &cobra.Command{}
+		root.PersistentFlags().Bool("debug", false, "Toggle debugging")
+		root.PersistentFlags().Set("debug", "true")
+		child := &cobra.Command{}
+		root.AddCommand(child)
+
+		env := makeEnv(child)
+		assert.Equal(t, "DEBUG=true", env[len(env)-1])
+	})
+}

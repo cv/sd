@@ -108,10 +108,10 @@ Receiving objects: 100% (5/5), done.
 Tapped 1 formula (27 files, 23KB)
 ```
 
-Then install `sd` with `brew install sd`:
+Then install `sd` with `brew install cv/taps/sd`:
 
 ```
-$ brew install sd
+$ brew install cv/taps/sd
 ==> Installing sd from cv/taps
 ==> Downloading https://github.com/cv/sd/releases/download/v0.1.1/sd_0.1.1_Darwin_x86_64.tar.gz
 ==> Downloading from https://github-production-release-asset-2e65be.s3.amazonaws.com/128149837/9149f9cc-39b3-11e8-98d8-b5bf16da23b7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2

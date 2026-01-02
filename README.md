@@ -1,5 +1,21 @@
 # sd: Scripts Dir
 
+> ## ⚠️ Project Archived
+>
+> **This project is no longer actively maintained.**
+>
+> For a more feature-rich alternative with active development, check out **[juanibiapina/sub](https://github.com/juanibiapina/sub)** — a Rust-based successor inspired by this project that adds:
+>
+> - ✅ Automatic argument validation from usage comments
+> - ✅ Argument parsing (no more manual `getopts`)
+> - ✅ Dynamic shell completions
+> - ✅ Better documentation support
+> - ✅ Active maintenance (v2.x released 2024)
+>
+> Thank you to everyone who used and contributed to `sd`! 🙏
+
+---
+
 A tool to keep utility scripts neatly organized.
 
 [![CircleCI](https://circleci.com/gh/cv/sd.svg?style=svg)](https://circleci.com/gh/cv/sd)
